@@ -1,4 +1,5 @@
 import {gql, useQuery} from '@apollo/client';
+import {Pokemon} from './pokemon';
 
 export function useFetchPokemonsQuery() {
   const GET_POKEMONS = gql`
@@ -10,5 +11,5 @@ export function useFetchPokemonsQuery() {
       }
     }
   `;
-  return useQuery(GET_POKEMONS);
+  return useQuery<{pokemons: Pokemon[]}>(GET_POKEMONS);
 }

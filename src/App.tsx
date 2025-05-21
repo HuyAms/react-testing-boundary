@@ -1,10 +1,10 @@
 import {useState} from 'react';
-import {pokemonData} from './graphql/pokemon';
 import {useFetchPokemonsQuery} from './graphql/pokemons.graphql';
 import {Loading} from './components/Loading';
 import {PokemonCard} from './components/PokemonCard';
 import {Checkbox} from './components/Checkbox';
 import {useHistory, useLocation} from 'react-router-dom';
+import {ErrorMessage} from './components/ErrorMessage';
 
 const TRAINING_MODE_QUERY_PARAM = 'trainingMode';
 
@@ -15,7 +15,7 @@ function App() {
   const initialTrainingMode = searchQuery.get(TRAINING_MODE_QUERY_PARAM) === 'true';
   const [trainingMode, setTrainingMode] = useState(initialTrainingMode);
 
-  const {loading, error} = useFetchPokemonsQuery();
+  const {data: pokemonData, loading, error} = useFetchPokemonsQuery();
 
   function handleTrainingModeChange(checked: boolean) {
     setTrainingMode(checked);
@@ -31,7 +31,7 @@ function App() {
   }
 
   if (error) {
-    return <div>Error: {error.message}</div>;
+    return <ErrorMessage errorMessage={error.message} />;
   }
 
   return (
@@ -46,16 +46,13 @@ function App() {
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {pokemonData.map(pokemon => (
-          <PokemonCard
-            key={pokemon.id}
-            name={pokemon.name}
-            imageSrc={pokemon.image}
-            trainingMode={trainingMode}
-          />
+      <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {pokemonData?.pokemons.map(pokemon => (
+          <li key={pokemon.id}>
+            <PokemonCard name={pokemon.name} imageSrc={pokemon.image} trainingMode={trainingMode} />
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }
