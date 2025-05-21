@@ -4,11 +4,27 @@ import {useFetchPokemonsQuery} from './graphql/pokemons.graphql';
 import {Loading} from './components/Loading';
 import {PokemonCard} from './components/PokemonCard';
 import {Checkbox} from './components/Checkbox';
+import {useHistory, useLocation} from 'react-router-dom';
+
+const TRAINING_MODE_QUERY_PARAM = 'trainingMode';
 
 function App() {
-  const [trainingMode, setTrainingMode] = useState(false);
+  const location = useLocation();
+  const history = useHistory();
+  const searchQuery = new URLSearchParams(location.search);
+  const initialTrainingMode = searchQuery.get(TRAINING_MODE_QUERY_PARAM) === 'true';
+  const [trainingMode, setTrainingMode] = useState(initialTrainingMode);
 
   const {loading, error} = useFetchPokemonsQuery();
+
+  function handleTrainingModeChange(checked: boolean) {
+    setTrainingMode(checked);
+
+    // update search params
+    const newSearchParams = new URLSearchParams(searchQuery);
+    newSearchParams.set(TRAINING_MODE_QUERY_PARAM, checked.toString());
+    history.push({pathname: location.pathname, search: newSearchParams.toString()});
+  }
 
   if (loading) {
     return <Loading message="Loading Pokémon..." />;
@@ -26,7 +42,7 @@ function App() {
         <Checkbox
           label="Training Mode"
           checked={trainingMode}
-          onChange={() => setTrainingMode(!trainingMode)}
+          onChange={handleTrainingModeChange}
         />
       </div>
 

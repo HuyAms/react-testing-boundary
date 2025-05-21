@@ -5,12 +5,17 @@ export const Checkbox = ({
 }: {
   label: string;
   checked: boolean;
-  onChange: React.ChangeEventHandler<HTMLInputElement>;
+  onChange: (checked: boolean) => void;
 }) => {
   return (
     <label className="flex items-center cursor-pointer">
       <div className="relative">
-        <input type="checkbox" className="sr-only" checked={checked} onChange={onChange} />
+        <input
+          type="checkbox"
+          className="sr-only"
+          checked={checked}
+          onChange={e => onChange(e.target.checked)}
+        />
         <div
           className={`w-10 h-6 rounded-full shadow-inner ${checked ? 'bg-blue-500' : 'bg-gray-300'}`}
         ></div>
