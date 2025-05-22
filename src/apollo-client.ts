@@ -1,6 +1,6 @@
 import {ApolloClient, InMemoryCache} from '@apollo/react-hooks';
 import {ApolloLink, Observable} from '@apollo/client';
-import {pokemonData} from './graphql/pokemon';
+import {pokemonData} from './data/pokemon';
 
 const artificialDelay = 2000;
 

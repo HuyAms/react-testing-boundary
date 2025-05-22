@@ -1,9 +1,9 @@
 import {useState} from 'react';
+import {useHistory, useLocation} from 'react-router-dom';
 import {useFetchPokemonsQuery} from './graphql/pokemons.graphql';
 import {Loading} from './components/Loading';
 import {PokemonCard} from './components/PokemonCard';
 import {Checkbox} from './components/Checkbox';
-import {useHistory, useLocation} from 'react-router-dom';
 import {ErrorMessage} from './components/ErrorMessage';
 
 const TRAINING_MODE_QUERY_PARAM = 'trainingMode';
