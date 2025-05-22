@@ -18,7 +18,8 @@ npm run test:watch
 
 ## Key Points
 
-See how we improve the [test here in this PR](https://github.com/HuyAms/react-testing-boundary/pull/1/files)
+- See how we improve the [test here in this PR](https://github.com/HuyAms/react-testing-boundary/pull/1/files)
+- [See the Slide here](https://github.com/HuyAms/react-testing-boundary/blob/main/slide/Testing%20Boundary%20-%20TechTalk.pdf)
 
 1. **Focus mainly on integration tests**
 

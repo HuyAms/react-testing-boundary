@@ -1,10 +1,11 @@
 import {afterEach, expect, it, vi} from 'vitest';
-import {render, screen, within} from '@testing-library/react';
+import {render, screen, waitForElementToBeRemoved, within} from '@testing-library/react';
 import App from './App';
 import {ApolloError} from '@apollo/client';
-import {useLocation} from 'react-router-dom';
-import {useFetchPokemonsQuery} from './graphql/pokemons.graphql';
+import {MemoryRouter} from 'react-router-dom';
+import {GET_POKEMONS} from './graphql/pokemons.graphql';
 import {userEvent} from '@testing-library/user-event';
+import {MockedProvider, MockedResponse} from '@apollo/client/testing';
 
 const user = userEvent.setup();
 
@@ -21,41 +22,44 @@ const MOCKED_POKEMONS = [
   },
 ];
 
-vi.mock('react-router-dom', () => ({
-  ...vi.importActual('react-router-dom'),
-  useLocation: vi.fn().mockReturnValue({
-    pathname: '/',
-    search: '',
-  }),
-  useHistory: vi.fn().mockReturnValue({
-    push: vi.fn(),
-  }),
-}));
+type Options = {
+  mocks?: MockedResponse[];
+  initialEntries?: string[];
+};
 
-vi.mock('./graphql/pokemons.graphql', () => ({
-  useFetchPokemonsQuery: vi.fn(),
-}));
+const pokemonSuccessResponse = {
+  request: {
+    query: GET_POKEMONS,
+  },
+  result: {
+    data: {
+      pokemons: MOCKED_POKEMONS,
+    },
+  },
+};
 
-function renderComponent() {
-  return render(<App />);
+function renderComponent(options: Options = {}) {
+  const {mocks = [], initialEntries = ['/']} = options;
+
+  const wrapper = ({children}: {children: React.ReactNode}) => (
+    <MockedProvider mocks={[...mocks, pokemonSuccessResponse]}>
+      <MemoryRouter initialEntries={initialEntries}>{children}</MemoryRouter>
+    </MockedProvider>
+  );
+
+  return render(<App />, {wrapper});
 }
 
 afterEach(() => {
   vi.clearAllMocks();
 });
 
-it('renders list of pokemons', () => {
-  // Setup: prepare data
-  vi.mocked(useFetchPokemonsQuery, {partial: true}).mockReturnValueOnce({
-    data: {
-      pokemons: MOCKED_POKEMONS,
-    },
-    loading: false,
-    error: undefined,
-  });
-
+it('renders list of pokemons', async () => {
   // Act
   renderComponent();
+
+  // loading
+  await waitForElementToBeRemoved(() => screen.getByText(/loading.../i));
 
   // Expect
   screen.getByRole('heading', {name: /Who's That Pokémon?/i});
@@ -77,45 +81,29 @@ it('renders list of pokemons', () => {
   expect(pokemonImg).toHaveAttribute('src', firstPokemon.image);
 });
 
-it('loading state', () => {
-  vi.mocked(useFetchPokemonsQuery, {partial: true}).mockReturnValueOnce({
-    data: {
-      pokemons: MOCKED_POKEMONS,
-    },
-    loading: true,
-    error: undefined,
-  });
-
-  renderComponent();
-
-  screen.getByText(/loading.../i);
-});
-
-it('error state', () => {
+it('error state', async () => {
   const errorMessage = 'Error fetching pokemons';
-  vi.mocked(useFetchPokemonsQuery, {partial: true}).mockReturnValueOnce({
-    data: undefined,
-    loading: false,
+
+  const errorResponse = {
+    request: {
+      query: GET_POKEMONS,
+    },
     error: new ApolloError({
       networkError: new Error(errorMessage),
     }),
-  });
+  };
 
-  renderComponent();
+  renderComponent({mocks: [errorResponse]});
+
+  await waitForElementToBeRemoved(() => screen.getByText(/loading.../i));
 
   screen.getByText(errorMessage);
 });
 
 it('hovers card in training mode', async () => {
-  vi.mocked(useFetchPokemonsQuery, {partial: true}).mockReturnValue({
-    data: {
-      pokemons: MOCKED_POKEMONS,
-    },
-    loading: false,
-    error: undefined,
-  });
-
   renderComponent();
+
+  await waitForElementToBeRemoved(() => screen.getByText(/loading.../i));
 
   const trainingModeCheckbox = screen.getByLabelText(/training mode/i);
   await user.click(trainingModeCheckbox);
@@ -136,21 +124,10 @@ it('hovers card in training mode', async () => {
   expect(within(firstPokemonCard).getByText('?')).toBeVisible();
 });
 
-it('persists training mode with URL', () => {
-  vi.mocked(useLocation, {partial: true}).mockReturnValue({
-    pathname: '/',
-    search: '?trainingMode=true',
-  });
+it('persists training mode with URL', async () => {
+  renderComponent({initialEntries: ['/?trainingMode=true']});
 
-  vi.mocked(useFetchPokemonsQuery, {partial: true}).mockReturnValueOnce({
-    data: {
-      pokemons: MOCKED_POKEMONS,
-    },
-    loading: false,
-    error: undefined,
-  });
-
-  renderComponent();
+  await waitForElementToBeRemoved(() => screen.getByText(/loading.../i));
 
   const trainingModeCheckbox = screen.getByLabelText(/training mode/i);
   expect(trainingModeCheckbox).toBeChecked();
