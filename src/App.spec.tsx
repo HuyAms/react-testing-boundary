@@ -58,7 +58,7 @@ it('renders list of pokemons', () => {
   renderComponent();
 
   // Expect
-  screen.getByRole('heading', {name: /Who's That Pokémon?/i});
+  expect(screen.getByRole('heading', {name: /Who's That Pokémon?/i})).toBeVisible();
 
   // Normal mode
   const trainingModeCheckbox = screen.getByLabelText(/training mode/i);
@@ -88,7 +88,7 @@ it('loading state', () => {
 
   renderComponent();
 
-  screen.getByText(/loading.../i);
+  expect(screen.getByText(/loading.../i)).toBeVisible();
 });
 
 it('error state', () => {
@@ -103,7 +103,7 @@ it('error state', () => {
 
   renderComponent();
 
-  screen.getByText(errorMessage);
+  expect(screen.getByText(errorMessage)).toBeVisible();
 });
 
 it('hovers card in training mode', async () => {
